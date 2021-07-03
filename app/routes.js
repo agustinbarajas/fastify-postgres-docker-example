@@ -59,6 +59,29 @@ async function routes(fastify, options) {
       fastify.pg.connect(onConnect);
     },
   });
+
+  // CREATE USER
+  fastify.route({
+    method: 'POST',
+    url: '/users',
+    handler: (request, reply) => {
+      function onConnect(err, client, release) {
+        if (err) return reply.send(err);
+        const newUser = request.body;
+
+        return client.query(
+          `INSERT into users (name,description,tweets)
+            VALUES('${newUser.name}','${newUser.description}',${newUser.tweets})`,
+          (queryErr, result) => {
+            release();
+            return reply.send(queryErr || result);
+          },
+        );
+      }
+
+      fastify.pg.connect(onConnect);
+    },
+  });
 }
 
 module.exports = routes;
