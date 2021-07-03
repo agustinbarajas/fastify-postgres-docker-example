@@ -38,6 +38,27 @@ async function routes(fastify, options) {
       fastify.pg.connect(onConnect);
     },
   });
+
+  // GET ONE USER IF EXISTS
+  fastify.route({
+    method: 'GET',
+    url: '/users/:id',
+    handler: async (request, reply) => {
+      const onConnect = (err, client, release) => {
+        if (err) return reply.send(err);
+
+        return client.query(
+          `SELECT * from users where id=${request.params.id}`,
+          (queryErr, result) => {
+            release();
+            return reply.send(queryErr || result.rows[0]);
+          },
+        );
+      };
+
+      fastify.pg.connect(onConnect);
+    },
+  });
 }
 
 module.exports = routes;
