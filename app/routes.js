@@ -82,6 +82,33 @@ async function routes(fastify, options) {
       fastify.pg.connect(onConnect);
     },
   });
+
+  // UPDATE ONE USER FIELDS
+  fastify.route({
+    method: 'PUT',
+    url: '/users/:id',
+    handler: async (request, reply) => {
+      const onConnect = async (err, client, release) => {
+        if (err) return reply.send(err);
+        const oldUserReq = await client.query(`SELECT * from users where id=${request.params.id}`);
+        const oldUser = oldUserReq.rows[0];
+
+        return client.query(
+          `UPDATE users SET(name,description,tweets) = (
+            '${request.body.name}',
+            '${request.body.description || oldUser.description}',
+            ${request.body.tweets || oldUser.tweets})
+          WHERE id=${request.params.id}`,
+          (queryErr, result) => {
+            release();
+            return reply.send(queryErr || `Updated: ${request.params.id}`);
+          },
+        );
+      };
+
+      fastify.pg.connect(onConnect);
+    },
+  });
 }
 
 module.exports = routes;
