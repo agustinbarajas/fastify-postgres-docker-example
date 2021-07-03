@@ -20,6 +20,24 @@ async function routes(fastify, options) {
 
     fastify.pg.connect(onConnect);
   });
+
+  // GET ALL USERS
+  fastify.route({
+    method: 'GET',
+    url: '/users',
+    handler: async (request, reply) => {
+      const onConnect = (err, client, release) => {
+        if (err) return reply.send(err);
+
+        return client.query('SELECT * from users', (queryErr, result) => {
+          release();
+          return reply.send(queryErr || result.rows);
+        });
+      };
+
+      fastify.pg.connect(onConnect);
+    },
+  });
 }
 
 module.exports = routes;
